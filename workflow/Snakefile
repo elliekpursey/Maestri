@@ -1,0 +1,68 @@
+from snakemake.utils import min_version
+import pandas
+
+min_version("5.1")
+
+localrules: all
+
+files, = glob_wildcards("results/protein_fastas/{genome}.fasta.gz")
+
+rule all:
+    input:
+        expand("results/macsy_results/{genome}/", genome=files),
+        "results/best_solution.csv",
+        "results/all_best_solutions.csv",
+        "results/all_systems.csv"
+
+rule get_protein_fasta:
+    input:
+        "resources/all_genomes/{genome}.gbff.gz"
+    output:
+        "results/protein_fastas/{genome}.fasta.gz"
+    resources:
+        time=lambda wildcards, attempt: 60 * attempt * 2
+    conda:
+        "envs/bio.yaml"
+    script:
+        "scripts/extract_protein_fasta.py"
+
+
+rule macsyfinder:
+    input:
+        "results/protein_fastas/{genome}.fasta.gz"
+    output:
+        directory("results/macsy_results/{genome}/"),
+        "results/macsy_results/{genome}/best_solution.tsv",
+        "results/macsy_results/{genome}/all_best_solutions.tsv",
+        "results/macsy_results/{genome}/all_systems.tsv"
+    params:
+        models_dir="resources/models"
+    resources:
+        time=lambda wildcards, attempt: 60 * attempt * 2
+    threads:
+        8
+    shell:
+        """
+        set +eu
+        source activate macsyenv
+        gunzip {input[0]}
+        macsyfinder -m maestri_system all --sequence-db "results/protein_fastas/{wildcards.genome}.fasta" --db-type ordered_replicon --models-dir {params.models_dir} --out-dir {output[0]} --worker 8
+        gzip results/protein_fastas/{wildcards.genome}.fasta
+        set -eu
+        """    
+
+# do not run until all macsyfinder jobs completed
+rule compile_best_solution:
+    input:
+        "results/macsy_results/"
+    output:
+        "results/best_solution.csv",
+        "results/all_best_solutions.csv",
+        "results/all_systems.csv"
+    resources:
+        time=2880
+    conda:
+        "envs/bio.yaml"
+    script:
+        "scripts/compile.py"
+

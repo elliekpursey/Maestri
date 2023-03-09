@@ -1,0 +1,10 @@
+name: cluster
+channels:
+    - conda-forge
+    - defaults
+    - anaconda
+dependencies:
+    - biopython=1.78
+    - python=3.9.6
+    - pandas
+    - numpy

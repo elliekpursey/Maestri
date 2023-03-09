@@ -1,0 +1,11 @@
+<model inter_gene_max_space="10" min_mandatory_genes_required="3" vers="2.0">
+    <gene name="prot_1" presence="accessory"/>
+    <gene name="prot_2" presence="accessory"/>
+    <gene name="prot_3" presence="accessory"/>
+    <gene name="prot_4" presence="accessory"/>
+    <gene name="prot_5" presence="accessory"/>
+    <gene name="prot_6" presence="mandatory"/>
+    <gene name="prot_7" presence="mandatory"/>
+    <gene name="prot_8" presence="mandatory"/>
+    
+</model>
